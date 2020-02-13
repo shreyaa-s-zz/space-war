@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Gamedev Canvas Workshop</title>
+    <link rel="stylesheet" href="mini-ninja.css" />
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  </head>
+  <body>
+    <div id="wrapper">
+      <canvas id="background" width="1360" height="664"></canvas>
+      <canvas id="myCanvas" width="1360" height="664"></canvas>
+      <canvas id="enemies" width="1360" height="664"></canvas>
+      <canvas id="canvasfinalLayer" width="1360" height="664"></canvas>
+      <div id="resetBox"> 
+        <div id="gameOver">Game Over</div>
+        <div id="score"></div>
+        <button id="restart">Restart</button>
+      </div>
+    </div>
+
+    <script>
+      let canvas = document.getElementById("myCanvas");
+      let ctx = canvas.getContext("2d");
+      let canvasMid = document.getElementById("enemies");
+      let midLayer = canvasMid.getContext("2d");
+      let canvasFinal = document.getElementById("canvasfinalLayer");
+      let finalLayer = canvasFinal.getContext("2d");
+
+      let x = 200;
+      let y = canvas.height / 2;
+      let dx = 0;
+      let dy = 0;
+      let ballRadius = 10;
+      let upPressed = false;
+      let downPressed = false;
+      var newBullet = false;
+      let img = new Image();
+      img.src = "player.png";
+      let enemyImg = new Image();
+      enemyImg.src = "enemy.png";
+      let spriteHeight = 100;
+      let spriteWidth = 200;
+      let enemyHeight = 50;
+      let enemyWidth = 150;
+      let bulletx = 0;
+      let bullety = 0;
+      var bulletArray = [];
+      var bulletCounter = 0;
+      var enemyCounter = 0;
+      var vx = 10;
+      let enemyY = 0;
+
+      $(window).load(function(event) {
+        window.requestAnimationFrame(draw);
+      });
+      requestAnimationFrame(loop);
+      requestAnimationFrame(enemyLoop);
+      setInterval("createEnemy()", 2000);
+      requestAnimationFrame(collisionDetection);
+      document.addEventListener("keydown", keyDownHandler, false);
+      document.addEventListener("keyup", keyUpHandler, false);
+
+      function keyDownHandler(e) {
+        if (e.key == "Up" || e.key == "ArrowUp") {
+          downPressed = true;
+        } else if (e.key == "Down" || e.key == "ArrowDown") {
+          upPressed = true;
+        } else if (e.keyCode == 32 || e.key == "SpaceBar") {
+          createBullet();
+        }
+      }
+
+      function keyUpHandler(e) {
+        if (e.key == "Up" || e.key == "ArrowUp") {
+          downPressed = false;
+          dy = 0;
+        } else if (e.key == "Down" || e.key == "ArrowDown") {
+          upPressed = false;
+          dy = 0;
+        }
+      }
+
+      function drawPlayer() {
+        ctx.drawImage(img, 0, y, spriteWidth, spriteHeight);
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawPlayer();
+        if (y + dy > canvas.height - 150) {
+          upPressed = false;
+          dy = 0;
+        }
+        if (y + dy < 0) {
+          downPressed = false;
+          dy = 0;
+        }
+        if (upPressed) {
+          dy = 4;
+        } else if (downPressed) {
+          dy = -4;
+        }
+        y += dy;
+        window.requestAnimationFrame(draw);
+      }
+
+      class Enemy {
+        constructor(index, st, enemyY, vx) {
+          (this.index = index),
+            (this.x = st),
+            (this.y = enemyY),
+            (this.vx = vx),
+            (this.alive = true);
+        }
+        draw() {
+          finalLayer.drawImage(
+            enemyImg,
+            this.x,
+            this.y,
+            enemyWidth,
+            enemyHeight
+          );
+        }
+        init() {
+          this.draw();
+          enemySprites.push(this);
+        }
+        render() {
+          if (this.alive) {
+            finalLayer.drawImage(
+              enemyImg,
+              this.x,
+              this.y,
+              enemyWidth,
+              enemyHeight
+            );
+          }
+        }
+        update() {
+          if (this.alive) {
+            this.x -= 2;
+            if (this.x < 0) {
+              this.alive = false;
+            }
+          }
+        }
+      }
+
+      var enemySprites = [];
+
+      function createEnemy() {
+        enemyY = Math.floor(Math.random() * 500 + 50);
+        enemies = new Enemy(enemyCounter, canvasFinal.width, enemyY, vx);
+        enemyCounter += 1;
+        enemies.init();
+      }
+
+      function enemyLoop() {
+        updateEnemy();
+        renderEnemy();
+        requestAnimationFrame(enemyLoop);
+      }
+      function updateEnemy() {
+        for (var jx = enemySprites.length; jx--; ) {
+          enemySprites[jx].update();
+        }
+      }
+
+      function renderEnemy() {
+        finalLayer.clearRect(0, 0, canvasFinal.width, canvasFinal.height);
+        for (var jx = enemySprites.length; jx--; ) {
+          enemySprites[jx].render();
+        }
+      }
+
+      class Bullet {
+        constructor(index, x, y, vx) {
+          (this.index = index),
+            (this.x = x),
+            (this.y = y + 48),
+            (this.vx = vx),
+            (this.alive = true);
+        }
+        draw() {
+          midLayer.rect(this.x, this.y, 6, 6);
+          midLayer.fillStyle = "white";
+          midLayer.fill();
+        }
+        init() {
+          this.draw();
+          bulletSprites.push(this);
+        }
+        render() {
+          if (this.alive) {
+            midLayer.fillRect(this.x, this.y, 7, 7);
+          }
+        }
+        update() {
+          if (this.alive) {
+            this.x += 4;
+            if (this.x > canvasMid.width) {
+              this.alive = false;
+            }
+          }
+        }
+      }
+
+      midLayer.fillStyle = "white";
+
+      var bulletSprites = [];
+
+      function createBullet() {
+        bullets = new Bullet(bulletCounter, x, y, vx);
+        bulletCounter += 1;
+        bullets.init();
+      }
+
+      function loop() {
+        update();
+        render();
+        requestAnimationFrame(loop);
+      }
+
+      function update() {
+        for (var ix = bulletSprites.length; ix--; ) {
+          bulletSprites[ix].update();
+        }
+      }
+
+      function render() {
+        midLayer.clearRect(0, 0, canvasMid.width, canvasMid.height);
+        for (var ix = bulletSprites.length; ix--; ) {
+          bulletSprites[ix].render();
+        }
+      }
+
+      function collisionDetection() {
+        for (i = 0; i < bulletSprites.length; i++) {
+          if (bulletSprites[i].alive) {
+            for (e = 0; e < enemySprites.length; e++) {
+              if (enemySprites[e].alive) {
+                if (
+                  bulletSprites[i].x > enemySprites[e].x &&
+                  bulletSprites[i].y > enemySprites[e].y &&
+                    bulletSprites[i].y < enemySprites[e].y + enemyHeight
+                ) {
+                  bulletSprites[i].alive = false;
+                  enemySprites[e].alive = false;
+                }
+                if (
+                  enemySprites[e].x == 0 ||
+                  (enemySprites[e].x < spriteWidth &&
+                    enemySprites[e].y > y &&
+                    enemySprites[e].y < y - spriteHeight)
+                ) {
+                  gameOver();
+                }
+              }
+            }
+          }
+        }
+        requestAnimationFrame(collisionDetection);
+      }
+      /*
+      function saveScore() {
+        var date = new Date();
+        date.setMonth(date.getMonth() + 5);
+        var expires = "; expires=" + date.toGMTString();
+        document.cookie = "score=" + lvl + expires + "; path=/";
+      }
+
+      function loadScore() {
+        var cookiearray = document.cookie.split(";");
+        for (var i = cookiearray.length; i > 0 ; i--) {
+          var name = cookiearray[i].split("=")[0];
+          var value = cookiearray[i].split("=")[1];
+          if (name == "score") {
+            lvl = value;
+            Document.getElementById("score").innerHTML = lvl ;
+          }
+        }
+      } */
+      function gameOver() {
+        document.getElementById("resetBox").style.visibility = "visible";
+      }
+    </script>
+  </body>
+</html>
