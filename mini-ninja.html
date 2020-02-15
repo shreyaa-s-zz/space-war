@@ -12,10 +12,10 @@
       <canvas id="myCanvas" width="1360" height="664"></canvas>
       <canvas id="enemies" width="1360" height="664"></canvas>
       <canvas id="canvasfinalLayer" width="1360" height="664"></canvas>
-      <div id="resetBox"> 
+      <div id="resetBox">
         <div id="gameOver">Game Over</div>
-        <div id="score"></div>
-        <button id="restart">Restart</button>
+        <!-- <div id="score"></div>
+        <button id="restart">Restart</button> -->
       </div>
     </div>
 
@@ -27,6 +27,7 @@
       let canvasFinal = document.getElementById("canvasfinalLayer");
       let finalLayer = canvasFinal.getContext("2d");
 
+      let gameover = false;
       let x = 200;
       let y = canvas.height / 2;
       let dx = 0;
@@ -51,13 +52,15 @@
       var vx = 10;
       let enemyY = 0;
 
+
       $(window).load(function(event) {
         window.requestAnimationFrame(draw);
+        requestAnimationFrame(loop);
+        requestAnimationFrame(enemyLoop);
+        setInterval("createEnemy()", 2000);
+        requestAnimationFrame(collisionDetection);
+        requestAnimationFrame(gameOver);
       });
-      requestAnimationFrame(loop);
-      requestAnimationFrame(enemyLoop);
-      setInterval("createEnemy()", 2000);
-      requestAnimationFrame(collisionDetection);
       document.addEventListener("keydown", keyDownHandler, false);
       document.addEventListener("keyup", keyUpHandler, false);
 
@@ -102,7 +105,8 @@
           dy = -4;
         }
         y += dy;
-        window.requestAnimationFrame(draw);
+        if (!gameover) {
+        window.requestAnimationFrame(draw); }
       }
 
       class Enemy {
@@ -156,10 +160,11 @@
         enemies.init();
       }
 
-      function enemyLoop() {
+      function enemyLoop() { 
+        if(!gameover) {
         updateEnemy();
         renderEnemy();
-        requestAnimationFrame(enemyLoop);
+        requestAnimationFrame(enemyLoop); }
       }
       function updateEnemy() {
         for (var jx = enemySprites.length; jx--; ) {
@@ -216,10 +221,11 @@
         bullets.init();
       }
 
-      function loop() {
+      function loop() { 
+        if (!gameover) {
         update();
         render();
-        requestAnimationFrame(loop);
+        requestAnimationFrame(loop); }
       }
 
       function update() {
@@ -243,24 +249,17 @@
                 if (
                   bulletSprites[i].x > enemySprites[e].x &&
                   bulletSprites[i].y > enemySprites[e].y &&
-                    bulletSprites[i].y < enemySprites[e].y + enemyHeight
+                  bulletSprites[i].y < enemySprites[e].y + enemyHeight
                 ) {
                   bulletSprites[i].alive = false;
                   enemySprites[e].alive = false;
-                }
-                if (
-                  enemySprites[e].x == 0 ||
-                  (enemySprites[e].x < spriteWidth &&
-                    enemySprites[e].y > y &&
-                    enemySprites[e].y < y - spriteHeight)
-                ) {
-                  gameOver();
                 }
               }
             }
           }
         }
-        requestAnimationFrame(collisionDetection);
+        if (!gameover) {
+        requestAnimationFrame(collisionDetection); }
       }
       /*
       function saveScore() {
@@ -282,7 +281,18 @@
         }
       } */
       function gameOver() {
-        document.getElementById("resetBox").style.visibility = "visible";
+        for (e = 0; e < enemySprites.length; e++) {
+          if (
+            enemySprites[e].x == 0 ||
+            (enemySprites[e].x < spriteWidth &&
+              enemySprites[e].y > y &&
+              enemySprites[e].y < y + spriteHeight)
+          ) {
+            document.getElementById("resetBox").style.visibility = "visible";
+            gameover = true;
+          }
+        }
+        requestAnimationFrame(gameOver);
       }
     </script>
   </body>

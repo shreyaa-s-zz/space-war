@@ -25,6 +25,21 @@
   background: black;
   position: absolute;
   visibility: hidden;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  color: white;
+  font-size: 40px;
+}
+
+#restart {
+  justify-content: center;
+  margin-top: 50px;
+  text-align: center;
+  align-self: center;
+  height: 50px;
+  width: 70px;
+  border-radius: 10px;
 }
 
 
