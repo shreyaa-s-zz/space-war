@@ -1,0 +1,68 @@
+#wrapper {
+    position: relative;
+}
+
+#myCanvas,
+#canvasTop,
+#enemies,
+#background {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+#canvasTop {
+    z-index: 3;
+}
+
+#enemies {
+    z-index: 1;
+}
+
+#myCanvas {
+    z-index: 2;
+}
+
+#background {
+    z-index: -1;
+    background: black;
+}
+
+#resetBox {
+    top: 0px;
+    left: 0px;
+    height: 648;
+    width: 1358;
+    background: black;
+    position: absolute;
+    visibility: hidden;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    color: white;
+    font-size: 40px;
+}
+
+#score {
+    position: absolute;
+    background: black;
+    color: white;
+    top: 0;
+    right: 10;
+    font-size: 30px;
+}
+
+#restart {
+    justify-content: center;
+    margin-top: 50px;
+    text-align: center;
+    align-self: center;
+    height: 50px;
+    width: 70px;
+    border-radius: 10px;
+}
+
+* {
+    padding: 0;
+    margin: 0;
+}
